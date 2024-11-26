@@ -1,5 +1,6 @@
 import networkx as nx
 import plotly.graph_objects as go
+import streamlit as st
 
 
 def plotly_ego_graph(ego_graph):
@@ -208,3 +209,92 @@ def get_ancestors_descendants(graph, node_id):
     descendants = list(nx.descendants(graph, node_id))
 
     return ancestors, descendants
+
+
+def main():
+
+    if "temporal_graph" not in st.session_state:
+        st.error("No Temporal Graph found in the session state. Please run the main script first.")
+        return
+
+    st.markdown("""
+            ## Select Query to Execute :
+        """)
+    
+    timestamp = st.select_slider("Select Timestamp", options=range(len(st.session_state.temporal_graph.files)))
+    
+    graph = st.session_state.temporal_graph.load_graph_at_timestamp(timestamp)
+
+    # Dropdown to select query
+    query_type = st.selectbox("Choose Query", ["Ego Graph", "Node Details", "Edge Attributes","Shortest Path", "Ancestors and Descendants"])
+
+    # Execute the chosen query
+    if query_type == "Ego Graph":
+        node_id = st.text_input("Enter Node ID for Ego Graph", "BG_001")
+        radius = st.slider("Select Radius for Ego Graph", 1, 5, 2)  # Slider for radius
+        # Generate the ego graph using the selected node and radius
+        ego_graph = ego_graph_query(graph, node_id, radius)
+        if ego_graph:
+            st.write(f"Ego Graph for Node: {node_id}")
+            st.write(f"Nodes: {ego_graph.number_of_nodes()}, Edges: {ego_graph.number_of_edges()}")
+
+            # Visualize and render the ego graph with Plotly
+            fig = plotly_ego_graph(ego_graph)
+            st.plotly_chart(fig)  # Display the figure in Streamlit
+
+    elif query_type == "Node Details":
+        node_id = st.text_input("Enter Node ID for Node Details", "BG_001")
+        node_data = node_details_query(graph, node_id)
+        st.json(node_data)
+    
+    elif query_type == "Edge Attributes":
+        node_id = st.text_input("Enter Node ID to Retrieve Edge Attributes", "BG_001")
+        if node_id:
+            edge_attributes = retrieve_edge_attributes(graph, node_id)
+            if edge_attributes:
+                st.write(f"Edges connected to Node {node_id}:")
+                st.json(edge_attributes)
+            else:
+                st.warning(f"No edges found for Node {node_id}.")
+    
+    elif query_type == "Shortest Path":
+        source_node = st.text_input("Enter Source Node ID", "BG_001")
+        destination_node = st.text_input("Enter Destination Node ID", "BG_002")
+
+        if st.button("Find Shortest Path"):
+            if source_node and destination_node:
+                path, length, fig = find_shortest_path(graph, source_node, destination_node)
+                if path and length:
+                    st.write(f"Shortest Path from {source_node} to {destination_node}: {path}")
+                    st.write(f"Path Length: {length}")
+
+            # Display the visualization
+                    st.plotly_chart(fig)
+                elif path is None:
+                    st.warning(f"No path exists between {source_node} and {destination_node}.")
+                else:
+                    st.error(f"Error: {path}")
+            else:
+                st.error("Please enter valid source and destination nodes.")
+    
+    elif query_type == "Ancestors and Descendants":
+        node_id = st.text_input("Enter Node ID to Retrieve Ancestors and Descendants", "BG_001")
+        if node_id:
+            try:
+                if node_id not in graph.nodes:
+                    raise ValueError(f"Node '{node_id}' does not exist in the graph.")
+                ancestors, descendants = get_ancestors_descendants(graph, node_id)
+
+                st.subheader(f"Results for Node: {node_id}")
+                st.write(f"**Ancestors ({len(ancestors)}):**")
+                st.write(ancestors if ancestors else "No ancestors found.")
+                st.write(f"**Descendants ({len(descendants)}):**")
+                st.write(descendants if descendants else "No descendants found.")
+
+            except ValueError as e:
+                st.error(str(e))
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {str(e)}")
+
+if __name__ == "__main__":
+    main()
