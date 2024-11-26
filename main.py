@@ -5,7 +5,7 @@ import re
 import networkx as nx  # <-- Import networkx here
 from functools import lru_cache
 from structural_queries import ego_graph_query, node_details_query, plotly_ego_graph, retrieve_edge_attributes, find_shortest_path, get_ancestors_descendants
-
+from product_offering_queries import query_parts_for_product_offering, query_profitable_products
 # Class for handling temporal graphs
 class TemporalGraph:
     def __init__(self, files):
@@ -147,10 +147,37 @@ def main():
                     st.error(str(e))
                 except Exception as e:
                     st.error(f"An unexpected error occurred: {str(e)}")
+    
+    with tabs[3]:
+        st.markdown("""
+            ## Select Query to Execute :
+        """)
 
+        # Dropdown to select query
+        query_type = st.selectbox("Choose Query", ["Parts needed to manufacture a product", "Profitable Product Offerings"])
 
+        if query_type == "Parts needed to manufacture a product":
+            product_offering_id = st.text_input("Enter Product Offering ID", "PO_001")
+            if st.button("Find Parts"):
+                parts = query_parts_for_product_offering(graph, product_offering_id)
+                if parts:
+                    st.write(f"Parts needed to manufacture {product_offering_id}:")
+                    st.json(parts)
+                else:
+                    st.warning(f"No valid parts found for Product Offering {product_offering_id}.")
 
+        elif query_type == "Profitable Product Offerings":
+            cost_threshold = st.number_input("Enter Cost Threshold", min_value=0.0, value=100.0)
+            demand_threshold = st.number_input("Enter Demand Threshold", min_value=0, value=10)
 
+            if st.button("Find Profitable Products"):
+                profitable_products = query_profitable_products(graph, cost_threshold, demand_threshold)
+                if profitable_products:
+                    st.write("Profitable Products:")
+                    for product in profitable_products:
+                        st.write(f"Product ID: {product[0]}, Cost: {product[1]}, Demand: {product[2]}")
+                else:
+                    st.warning("No profitable products found under the given thresholds.")
 
 
 if __name__ == "__main__":
