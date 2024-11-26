@@ -44,7 +44,7 @@ def natural_sort(files):
 
 # Streamlit app starts here
 def main():
-    st.title("Temporal Graph Dashboard Trial")
+    st.title("Temporal Graph Dashboard")
 
     # Specify the directory containing JSON files
     data_directory = "D:/LAM/End Card/EndCard/size_1000/"
