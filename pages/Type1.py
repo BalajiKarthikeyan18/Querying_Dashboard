@@ -3,7 +3,7 @@ import time  # Ensure this is imported properly
 import tracemalloc
 import functools
 import json
-
+import base64
 
 def time_and_memory(func):
     @functools.wraps(func)
@@ -30,6 +30,12 @@ def time_and_memory(func):
 
         return result
     return wrapper
+
+# Encode the image to Base64
+def encode_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
+
 
 
 @time_and_memory
@@ -157,6 +163,10 @@ def main():
     with open(st.session_state.temporal_graph.files[timestamp], 'r') as f:
         json_graph = json.load(f)
 
+    # Load and encode the image
+    networkx_image = encode_image("pages\graph.png")
+    json_image = encode_image("pages\json.png")
+
     queries = st.selectbox("Select Query", [
                            "Select Query", "Supplier Reliability and Costing", "Supplied Part Types", "Lead Time Supplier to Warehouse"])
 
@@ -199,7 +209,14 @@ def main():
 
         # Left column: Results using Networkx
         with cols[0]:
-            st.markdown("### 🌐 Result using **Networkx**")
+            st.markdown(
+                """
+                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;"> Result using **Networkx**
+                """.format(
+                    base64_image=networkx_image
+                ),
+                unsafe_allow_html=True,
+            )
             st.divider()  # Optional: Add a horizontal line for separation
 
             suppliers_networkx = supplier_reliability_costing_temporal(
@@ -226,7 +243,15 @@ def main():
 
         # Right column: Results using JSON
         with cols[1]:
-            st.markdown("### 🗃️ Result using **JSON**")
+            # st.markdown("### 🗃️ Result using **JSON**")
+            st.markdown(
+                """
+                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;">  Result using **JSON**
+                """.format(
+                    base64_image=json_image
+                ),
+                unsafe_allow_html=True,
+            )
             st.divider()  # Optional: Add a horizontal line for separation
 
             suppliers_json = supplier_reliability_costing_json(
@@ -270,7 +295,15 @@ def main():
         error_style = "color: red; font-weight: bold;"
 
         with cols[0]:
-            st.markdown("### 🌐 Result using **Networkx**")
+            # st.markdown("### 🌐 Result using **Networkx**")
+            st.markdown(
+                """
+                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;"> Result using **Networkx**
+                """.format(
+                    base64_image=networkx_image
+                ),
+                unsafe_allow_html=True,
+            )
             supplied_part_types = query_supplied_part_types_for_supplier(
                 graph, supplier_id)
 
@@ -293,7 +326,15 @@ def main():
                 )
 
         with cols[1]:
-            st.write("### 🗃️ Result using **JSON**")
+            # st.write("### 🗃️ Result using **JSON**")
+            st.markdown(
+                """
+                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;">  Result using **JSON**
+                """.format(
+                    base64_image=json_image
+                ),
+                unsafe_allow_html=True,
+            )
             supplied_part_types = query_supplied_part_types_for_supplier_json(
                 json_graph, supplier_id)
 
@@ -334,7 +375,15 @@ def main():
         error_style = "color: red; font-weight: bold;"
 
         with cols[0]:
-            st.markdown("### 🌐 Result using **Networkx**")
+            # st.markdown("### 🌐 Result using **Networkx**")
+            st.markdown(
+                """
+                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;"> Result using **Networkx**
+                """.format(
+                    base64_image=networkx_image
+                ),
+                unsafe_allow_html=True,
+            )
             lead_time = query_lead_time_supplier_to_warehouse(
                 graph, supplier_id, warehouse_id)
 
@@ -355,7 +404,15 @@ def main():
                 )
 
         with cols[1]:
-            st.write("### 🗃️ Result using **JSON**")
+            # st.write("### 🗃️ Result using **JSON**")
+            st.markdown(
+                """
+                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;">  Result using **JSON**
+                """.format(
+                    base64_image=json_image
+                ),
+                unsafe_allow_html=True,
+            )
             lead_time = query_lead_time_supplier_to_warehouse_json(
                 json_graph, supplier_id, warehouse_id)
 
