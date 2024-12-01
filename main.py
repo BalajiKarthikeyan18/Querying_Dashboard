@@ -12,7 +12,7 @@ def main():
     st.title("Temporal Graph Dashboard")
 
     # Specify the directory containing JSON files
-    data_directory = "data/supply_chain_export_10000/"
+    data_directory = "data/supply_chain_export_1000/"
     files = glob.glob(f"{data_directory}timestamp_*.json")
 
     if not files:

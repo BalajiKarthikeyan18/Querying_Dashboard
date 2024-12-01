@@ -122,6 +122,25 @@ def query_supplied_part_types_for_supplier_json(json_graph, supplier_id):
             return nodes[-2]
     return None
 
+@time_and_memory
+def query_lead_time_supplier_to_warehouse(G, supplier_id, warehouse_id):
+    if G.has_edge(supplier_id, warehouse_id):
+        edge_data = G[supplier_id][warehouse_id]
+        if edge_data.get("relationship_type") == "SupplierToWarehouse":
+            lead_time = edge_data.get("lead_time")
+            return lead_time
+        else:
+            return None
+    else:
+        return None
+
+@time_and_memory
+def query_lead_time_supplier_to_warehouse_json(json_graph, supplier_id, warehouse_id):
+    for edge in json_graph["relationship_values"]:
+        if edge[0] == "SupplierToWarehouse" and edge[-2] == supplier_id and edge[-1] == warehouse_id:
+            return edge[2]
+    return None
+
 
 def main():
 
@@ -139,7 +158,7 @@ def main():
         json_graph = json.load(f)
 
     queries = st.selectbox("Select Query", [
-                           "Select Query", "Supplier Reliability and Costing", "Supplied Part Types"])
+                           "Select Query", "Supplier Reliability and Costing", "Supplied Part Types", "Lead Time Supplier to Warehouse"])
 
     if queries == "Supplier Reliability and Costing":
 
@@ -295,6 +314,66 @@ def main():
                     unsafe_allow_html=True,
                 )
 
+    elif queries == "Lead Time Supplier to Warehouse":
+
+        st.write(
+            "This query will return the lead time for a specific Supplier to Warehouse relationship.")
+
+        all_suppliers = [node for node in graph.nodes if graph.nodes[node].get(
+            "node_type") == "Supplier"]
+        all_warehouses = [node for node in graph.nodes if graph.nodes[node].get(
+            "node_type") == "Warehouse"]
+
+        supplier_id = st.selectbox("Select Supplier ID", options=all_suppliers)
+        warehouse_id = st.selectbox("Select Warehouse ID", options=all_warehouses)
+
+        cols = st.columns(2, gap="large")
+
+        # Define styles for success and error messages
+        success_style = "color: white; font-weight: bold;"
+        error_style = "color: red; font-weight: bold;"
+
+        with cols[0]:
+            st.markdown("### 🌐 Result using **Networkx**")
+            lead_time = query_lead_time_supplier_to_warehouse(
+                graph, supplier_id, warehouse_id)
+
+            if lead_time is not None:
+                st.markdown(
+                    f" #### Lead time from Supplier {supplier_id} to Warehouse {warehouse_id}:",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<div style='{success_style}'>{lead_time}</div>",
+                    unsafe_allow_html=True,
+                )
+
+            else:
+                st.markdown(
+                    f"<div style='{error_style}'>No relationship found between Supplier {supplier_id} and Warehouse {warehouse_id}.</div>",
+                    unsafe_allow_html=True,
+                )
+
+        with cols[1]:
+            st.write("### 🗃️ Result using **JSON**")
+            lead_time = query_lead_time_supplier_to_warehouse_json(
+                json_graph, supplier_id, warehouse_id)
+
+            if lead_time is not None:
+                st.markdown(
+                    f" #### Lead time from Supplier {supplier_id} to Warehouse {warehouse_id}:",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(
+                    f"<div style='{success_style}'>{lead_time}</div>",
+                    unsafe_allow_html=True,
+                )
+
+            else:
+                st.markdown(
+                    f"<div style='{error_style}'>No relationship found between Supplier {supplier_id} and Warehouse {warehouse_id}.</div>",
+                    unsafe_allow_html=True,
+                )
 
 if __name__ == "__main__":
     main()

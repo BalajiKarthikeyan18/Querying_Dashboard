@@ -10,13 +10,19 @@ def query_transportation_cost_for_supplier_and_warehouse(G, supplier_id, warehou
             return edge_data.get("transportation_cost")
     return None
 
+def query_transportation_cost_for_supplier_and_warehouse_json(json_graph, supplier_id, warehouse_id):
+    for edge in json_graph["relationship_values"]:
+        if edge[0] == "SupplierToWarehouse" and edge[-2] == supplier_id and edge[-1] == warehouse_id:
+            return edge[1]
+    return None
+
 def main():
 
     if "temporal_graph" not in st.session_state:
         st.error("No Temporal Graph found in the session state. Please run the main script first.")
         return
     
-    timestamp = st.sidebar.select_slider("Select Timestamp", options=range(len(st.session_state.temporal_graph.files)))
+    timestamp = st.select_slider("Select Timestamp", options=range(len(st.session_state.temporal_graph.files)))
     
 
     st.title("Querying Transportation Cost for Supplier and Warehouse")
@@ -34,6 +40,10 @@ def main():
     #     all_warehouses.append(warehouse_data[-1])
 
     graph = st.session_state.temporal_graph.load_graph_at_timestamp(timestamp)
+    with open(st.session_state.temporal_graph.files[timestamp], 'r') as f:
+        json_graph = json.load(f)
+
+
     all_suppliers = []
     all_warehouses = []
     for node_id, node_data in graph.nodes(data=True):
@@ -42,8 +52,8 @@ def main():
         elif node_data.get("node_type") == "Warehouse":
             all_warehouses.append(node_id)
 
-    supplier_id = st.sidebar.selectbox("Select Supplier ID:", options=all_suppliers)
-    warehouse_id = st.sidebar.selectbox("Select Warehouse ID:", options=all_warehouses)
+    supplier_id = st.selectbox("Select Supplier ID:", options=all_suppliers)
+    warehouse_id = st.selectbox("Select Warehouse ID:", options=all_warehouses)
 
     transportation_cost = query_transportation_cost_for_supplier_and_warehouse(graph, supplier_id, warehouse_id)
     if transportation_cost is None:

@@ -1,5 +1,8 @@
 import streamlit as st
 
+# supplier, parts
+# warehouse, facility , po
+
 def query_parts_for_product_offering(graph, product_offering_id):
     """
     Retrieve all parts needed to manufacture a given product offering based on the schema.
