@@ -278,7 +278,7 @@ def main():
                 st.error("Please enter valid source and destination nodes.")
     
     elif query_type == "Ancestors and Descendants":
-        node_id = st.text_input("Enter Node ID to Retrieve Ancestors and Descendants", "BG_001")
+        node_id = st.text_input("Enter Node ID to Retrieve Ancestors and Descendants", "PF_001")
         if node_id:
             try:
                 if node_id not in graph.nodes:
