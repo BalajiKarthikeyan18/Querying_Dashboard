@@ -38,6 +38,8 @@ def time_and_memory(func):
     return wrapper
 
  # Encode the image to Base64
+
+
 def encode_image(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode("utf-8")
@@ -48,7 +50,6 @@ def query_transportation_cost_for_supplier_and_warehouse(G, supplier_id, warehou
 
     if G.has_edge(supplier_id, warehouse_id):
         edge_data = G[supplier_id][warehouse_id]
-        st.write(edge_data)
         if edge_data.get("relationship_type") == "SupplierToWarehouse":
             return edge_data.get("transportation_cost")
     return None
@@ -156,15 +157,12 @@ def main():
     timestamp = st.select_slider("Select Timestamp", options=range(len(st.session_state.temporal_graph.files)))
     
 
-    st.title("Querying Transportation Cost for Supplier and Warehouse")
+    st.title("Querying for Products")
     
     graph = st.session_state.temporal_graph.load_graph_at_timestamp(timestamp)
     with open(st.session_state.temporal_graph.files[timestamp], 'r') as f:
         json_graph = json.load(f)
 
-    
-
-   
     # Load and encode the image
     networkx_image = encode_image("pages\graph.png")
     json_image = encode_image("pages\json.png")
@@ -196,6 +194,7 @@ def main():
 
         supplier_id = st.selectbox("Select Supplier ID:", options=all_suppliers)
         warehouse_id = st.selectbox("Select Warehouse ID:", options=all_warehouses)
+        st.write("Example S_001 supplies to warehouse W_091,W_139")
 
         cols = st.columns(2, gap="large")
 

@@ -259,7 +259,7 @@ def main():
     
     elif query_type == "Shortest Path":
         source_node = st.text_input("Enter Source Node ID", "BG_001")
-        destination_node = st.text_input("Enter Destination Node ID", "BG_002")
+        destination_node = st.text_input("Enter Destination Node ID", "P_480")
 
         if st.button("Find Shortest Path"):
             if source_node and destination_node:

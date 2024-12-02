@@ -262,11 +262,11 @@ def query_valid_parts_json(data, start_date: str, end_date: str):
 
 
 @time_and_memory
-def query_most_common_subtypes_json(temporal_graph, timestamp: int, n: int):
+def query_most_common_subtypes_json(data, n: int):
    
     # Load the JSON data at the given timestamp
-    with open(temporal_graph.files[timestamp], 'r') as f:
-        data = json.load(f)
+    # with open(temporal_graph.files[timestamp], 'r') as f:
+    #     data = json.load(f)
     
     # List to store subtypes
     subtypes = []
@@ -288,10 +288,10 @@ def query_most_common_subtypes_json(temporal_graph, timestamp: int, n: int):
 
 
 @time_and_memory
-def query_most_common_subtypes_nx(temporal_graph, timestamp: int, n: int):
+def query_most_common_subtypes_nx(graph, n: int):
     
     # Load the graph at the given timestamp
-    graph = temporal_graph.load_graph_at_timestamp(timestamp)
+    # graph = temporal_graph.load_graph_at_timestamp(timestamp)
 
     # List to store subtypes
     subtypes = []
@@ -748,7 +748,7 @@ def main():
             )
             st.divider()
 
-            most_common_parts = query_most_common_subtypes_nx(st.session_state.temporal_graph, timestamp, n)
+            most_common_parts = query_most_common_subtypes_nx(graph, n)
             if most_common_parts:
                 st.write("#### Most Common Parts:")
                 for part, count in most_common_parts:
@@ -768,7 +768,7 @@ def main():
             )
             st.divider()
 
-            most_common_parts_json = query_most_common_subtypes_json(st.session_state.temporal_graph, timestamp, n)
+            most_common_parts_json = query_most_common_subtypes_json(json_graph, n)
             if most_common_parts_json:
                 st.write("#### Most Common Parts:")
                 for part, count in most_common_parts_json:
