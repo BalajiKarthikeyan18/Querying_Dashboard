@@ -303,8 +303,8 @@ def main():
 
     elif query == "Find Profitable Product Offerings":  
         st.write("This query retrieves profitable product offerings whose cost is less and the demand is more given the thresholds.")
-        cost_threshold = st.number_input("Enter Cost Threshold", min_value=100, value = 1000 ,max_value=10000,step=100)
-        demand_threshold = st.number_input("Enter Demand Threshold", min_value=10, value=50,max_value=200,step=5)
+        cost_threshold = st.number_input("Enter Cost Threshold", min_value=100, value = 5000 ,max_value=10000,step=100)
+        demand_threshold = st.number_input("Enter Demand Threshold", min_value=10, value=100,max_value=200,step=5)
 
         cols = st.columns(2, gap="large")
 

@@ -543,6 +543,7 @@ def main():
 
         supplier_id = st.selectbox("Select Supplier ID", options=all_suppliers)
         warehouse_id = st.selectbox("Select Warehouse ID", options=all_warehouses)
+        st.write("Supplier S_001 is connected to warehouse with W_091,W_139")
 
         cols = st.columns(2, gap="large")
 
