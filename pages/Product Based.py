@@ -3,8 +3,10 @@ import json
 import functools
 import time
 import tracemalloc
-
+from datetime import datetime
 import base64
+from collections import Counter
+
 
 # supplier, parts
 # warehouse, facility , po
@@ -126,10 +128,13 @@ def query_profitable_products_json(json_graph, cost_threshold, demand_threshold)
 
 @time_and_memory
 def query_high_operating_cost_nodes(G, threshold):
-    high_cost_nodes = [
-        [node,attrs.get("operating_cost,0")] for node, attrs in G.nodes(data=True)
-        if attrs.get("node_type") == "Facility" and attrs.get("operating_cost", 0) > threshold
-    ]
+    high_cost_nodes = []
+    for node, attrs in G.nodes(data=True):
+        if attrs.get("node_type") == "Facility":
+            operating_cost = attrs.get("operating_cost", 0)
+            if operating_cost > threshold:
+                high_cost_nodes.append((node, operating_cost))
+
     return high_cost_nodes
 
 @time_and_memory
@@ -140,37 +145,6 @@ def query_high_operating_cost_nodes_json(json_graph, threshold):
     ]
     return high_cost_nodes
 
-
-@time_and_memory
-def query_suppliers_for_part_via_warehouse(G,part_id):
-
-    warehouses_with_part = [
-        s for s,t,data in G.in_edges(part_id, data=True)
-        if data.get("relationship_type") == "WarehouseToParts"
-    ]
-
-
-    suppliers = set()
-    for warehouse in warehouses_with_part:
-        for s,t,data in G.in_edges(warehouse, data=True):
-            if data.get("relationship_type") == "SupplierToWarehouse":
-                suppliers.add(s)
-
-    return list(suppliers)
-
-@time_and_memory
-def query_suppliers_for_part_via_warehouse_json(json_graph, part_id):
-    suppliers = set()
-    for edge in json_graph["relationship_values"]:
-        if edge[0] == "WarehouseToParts" and edge[-1] == part_id:
-            # st.write(edge,edge[-2])
-            warehouse_id = edge[-2]
-            for supplier_edge in json_graph["relationship_values"]:
-                if supplier_edge[0] == "SupplierToWarehouse" and supplier_edge[-1] == warehouse_id:
-                    # st.write("nothing ",supplier_edge,supplier_edge[-2])
-                    suppliers.add(supplier_edge[-2])
-
-    return list(suppliers)
 
 
 def main():
@@ -184,18 +158,6 @@ def main():
 
     st.title("Querying Transportation Cost for Supplier and Warehouse")
     
-    # Load the JSON data at the given timestamp
-    # with open(st.session_state.temporal_graph.files[timestamp], 'r') as f:
-    #     temporal_graph = json.load(f)
-
-    # all_suppliers = []
-    # for supplier_data in temporal_graph["node_values"]["Supplier"] :
-    #     all_suppliers.append(supplier_data[-1])
-
-    # all_warehouses = []
-    # for warehouse_data in temporal_graph["node_values"]["Warehouse"] :
-    #     all_warehouses.append(warehouse_data[-1])
-
     graph = st.session_state.temporal_graph.load_graph_at_timestamp(timestamp)
     with open(st.session_state.temporal_graph.files[timestamp], 'r') as f:
         json_graph = json.load(f)
@@ -225,7 +187,6 @@ def main():
                "Find Parts needed to manufacture a product",
                "Find Profitable Product Offerings",
                "Find High Operating Cost Facilities",
-                "Find Suppliers for a Part"
                ]
     query = st.selectbox("Choose Query", queries)
 
@@ -447,67 +408,6 @@ def main():
 
             else:
                 st.warning("#### No facilities found with operating costs above the given threshold.")
-
-    elif query == "Find Suppliers for a Part":
-        st.write("This query retrieves suppliers for a given part via a warehouse.")
-        part_id = st.selectbox("Select Part ID:", options=all_parts)
-
-        cols = st.columns(2, gap="large")
-
-        # Left column: Results using Networkx
-        with cols[0]:
-            st.markdown(
-                """
-                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;"> Result using **Networkx**
-                """.format(
-                    base64_image=networkx_image
-                ),
-                unsafe_allow_html=True,
-            )
-            st.divider()
-
-            suppliers = query_suppliers_for_part_via_warehouse(graph, part_id)
-            if suppliers:
-                st.write(f"#### Suppliers for Part {part_id}:")
-                # Define a scrollable container with fixed height
-                with st.container():
-                    scrollable_style = """
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-                    """
-                    # Format each supplier into a paragraph
-                    content = "".join([f"<p>{supplier} supplies this part</p>" for supplier in suppliers])
-                    st.markdown(scrollable_style + content + "</div>", unsafe_allow_html=True)
-
-            else:
-                st.warning(f"No suppliers found for Part {part_id}.")
-
-        # Right column: Results using JSON
-        with cols[1]:
-            st.markdown(
-                """
-                ### <img src="data:image/png;base64,{base64_image}" alt="Icon" style="width: 30px; height: 30px; vertical-align: middle;"> Result using **JSON**
-                """.format(
-                    base64_image=json_image
-                ),
-                unsafe_allow_html=True,
-            )
-            st.divider()
-
-            suppliers_json = query_suppliers_for_part_via_warehouse_json(json_graph, part_id)
-            if suppliers_json:
-                st.write(f"#### Suppliers for Part {part_id}:")
-                # Define a scrollable container with fixed height
-                with st.container():
-                    scrollable_style = """
-                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
-                    """
-                    # Format each
-                    content = "".join([f"<p>{supplier} supplies this part</p>" for supplier in suppliers_json])
-                    st.markdown(scrollable_style + content + "</div>", unsafe_allow_html=True)
-
-            else:
-                st.warning(f"No suppliers found for Part {part_id}.")
-
 
 if __name__ == "__main__":
     main()
